@@ -883,3 +883,180 @@ const SEdit = styled.span`
 ```
 
 再レンダリングをconsoleで確認してみる  
+
+## 44. Recoilでのstate管理実践
+
+- `# npm install --save recoil`を実行  
+
+- `# mkdir src/store && touch $_/userState.js`を実行  
+
+- `src/store/userState.js`を編集  
+
+```js:userState.js
+import { atom } from 'recoil'
+
+export const userState = atom({
+    key: "userState",
+    default: { isAdmin: false }
+});
+```
+
+- `src/App.jsx`を編集  
+
+```jsx:App.jsx
+import { RecoilRoot } from "recoil"; // 追加
+import "./App.css";
+import { UserProvider } from "./providers/UserProvider";
+import { Router } from "./router/Router";
+
+export const App = () => {
+  return (
+    <RecoilRoot> {/* 追加 */}
+      <UserProvider>
+        <Router />;
+      </UserProvider>
+    </RecoilRoot> {/* 追加 */}
+  );
+};
+```
+
+- `src/components/pages/Users.jsx`を編集  
+
+```jsx:Users.jsx
+import styled from "styled-components";
+import { SearchInput } from "../molecules/SearchInput";
+import { UserCard } from "../organism/user/UserCard";
+import { SecondaryButton } from "../atoms/button/SecondaryButton";
+import { useRecoilState } from "recoil"; // 追加
+import { userState } from "../../store/userState"; // 追加
+
+const users = [...Array(10).keys()].map((val) => {
+  return {
+    id: val,
+    name: `たかき${val}`,
+    image: "https://source.unsplash.com/JBrbzg5N7Go",
+    email: "takaki55730317@gmail.com",
+    phone: "090-1438-2914",
+    company: {
+      name: "テスト株式会社"
+    },
+    website: "https://yahoo.com"
+  };
+});
+
+export const Users = () => {
+  const [userInfo, setUserInfo] = useRecoilState(userState); // 追加
+
+  const onClickSwitch = () => setUserInfo({ isAdmin: !userInfo.isAdmin });
+
+  return (
+    <SContainer>
+      <h1>ユーザー一覧</h1>
+      <SearchInput />
+      <br />
+      <SecondaryButton onClick={onClickSwitch}>切り替え</SecondaryButton>
+      <SUserArea>
+        {users.map((user) => (
+          <UserCard key={user.id} user={user} />
+        ))}
+      </SUserArea>
+    </SContainer>
+  );
+};
+
+const SContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+`;
+
+const SUserArea = styled.div`
+  padding-top: 40px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-gap: 20px;
+`;
+```
+
+- `src/components/molecules/user/UserIconWithName.jsx`を編集  
+
+```jsx:UserIconWithName.jsx
+import styled from "styled-components";
+import { useRecoilValue } from "recoil"; // 追加
+import { userState } from "../../../store/userState"; // 追加
+import { memo } from "react";
+
+export const UserIconWithName = memo((props) => {
+  console.log("UserIconWithName");
+
+  const { image, name } = props;
+  const userInfo = useRecoilValue(userState) // 追加
+  const isAdmin = userInfo ? userInfo.isAdmin : false;
+
+  return (
+    <SContainer>
+      <SImg height={160} width={160} src={image} alt={name} />
+      <SName>{name}</SName>
+      {isAdmin && <SEdit>編集</SEdit>}
+    </SContainer>
+  );
+});
+
+const SContainer = styled.div`
+  text-align: center;
+`;
+const SImg = styled.img`
+  border-radius: 50%;
+`;
+const SName = styled.p`
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+  color: #40514e;
+`;
+const SEdit = styled.span`
+  text-decoration: underline;
+  color: #aaa;
+  cursor: pointer;
+`;
+```
+
+- `src/components/pages/Top.jsx`を編集  
+
+```jsx:Top.jsx
+import styled from "styled-components";
+import { SecondaryButton } from "../atoms/button/SecondaryButton";
+import { useNavigate } from "react-router-dom";
+import { useSetRecoilState } from "recoil"; // 追加
+import { userState } from "../../store/userState"; // 追加
+
+export const Top = () => {
+  const navigate = useNavigate();
+  const setUserInfo = useSetRecoilState(userState); // 編集
+
+  const onClickAdmin = () => {
+    setUserInfo({ isAdmin: true });
+    navigate("/users");
+  };
+  const onClickGeneral = () => {
+    setUserInfo({ isAdmin: false });
+    navigate("/users");
+  };
+
+  return (
+    <SContainer>
+      <h2>TOPページです</h2>
+      <SecondaryButton onClick={onClickAdmin}>管理者ユーザー</SecondaryButton>
+      <br />
+      <br />
+      <SecondaryButton onClick={onClickGeneral}>一般ユーザー</SecondaryButton>
+    </SContainer>
+  );
+};
+
+const SContainer = styled.div`
+  text-align: center;
+`;
+```

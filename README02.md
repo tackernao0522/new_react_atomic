@@ -1,8 +1,8 @@
-# Section7: グローバルなstate管理を知る
+# Section7: グローバルな state 管理を知る
 
 ## 39. ツライ例を実装してみる
 
-- `src/components/pages/Top.jsx`を編集  
+- `src/components/pages/Top.jsx`を編集
 
 ```jsx:Top.jsx
 import styled from "styled-components";
@@ -24,7 +24,7 @@ const SContainer = styled.div`
 `;
 ```
 
-- `src/components/atoms/button/SecondaryButton.jsx`を編集  
+- `src/components/atoms/button/SecondaryButton.jsx`を編集
 
 ```jsx:SecondaryButton.jsx
 import styled from "styled-components";
@@ -40,7 +40,7 @@ const SButton = styled(BaseButton)`
 `;
 ```
 
-- `src/components/pages/Top.jsx`を編集  
+- `src/components/pages/Top.jsx`を編集
 
 ```jsx:Top.jsx
 import styled from "styled-components";
@@ -66,7 +66,7 @@ const SContainer = styled.div`
 `;
 ```
 
-- `src/components/pages/Top.jsx`を編集  
+- `src/components/pages/Top.jsx`を編集
 
 ```jsx:Top.jsx
 import styled from "styled-components";
@@ -95,7 +95,7 @@ const SContainer = styled.div`
 `;
 ```
 
-- `src/components/pages/Top.jsx`を編集  
+- `src/components/pages/Top.jsx`を編集
 
 ```jsx:Top.jsx
 import styled from "styled-components";
@@ -125,7 +125,7 @@ const SContainer = styled.div`
 `;
 ```
 
-- `src/components/pages/User.jsx`を編集  
+- `src/components/pages/User.jsx`を編集
 
 ```jsx:User.jsx
 import styled from "styled-components";
@@ -180,7 +180,7 @@ const SUserArea = styled.div`
 `;
 ```
 
-- `src/components/pages/User.jsx`を編集  
+- `src/components/pages/User.jsx`を編集
 
 ```jsx:User.jsx
 import styled from "styled-components";
@@ -235,7 +235,7 @@ const SUserArea = styled.div`
 `;
 ```
 
-- `src/components/organism/user/UserCard.jsx`を編集  
+- `src/components/organism/user/UserCard.jsx`を編集
 
 ```jsx:UserCard.jsx
 import { Card } from "../../atoms/card/Card";
@@ -275,7 +275,7 @@ const SDl = styled.dl`
 `;
 ```
 
-- `src/components/molecules/user/UserIconWithName.jsx`を編集  
+- `src/components/molecules/user/UserIconWithName.jsx`を編集
 
 ```jsx:UserIconWithName.jsx
 import styled from "styled-components";
@@ -311,4 +311,83 @@ const SEdit = styled.span`
   cursor: pointer;
 `;
 // ここまで
+```
+
+## 40. Context での state 管理(基本的な使い方)
+
+- `# mkdir src/providers && touch $_/UserProvider.jsx`を実行
+
+- `src/providers/UserProvider.jsx`を編集
+
+```jsx:UserProvider.jsx
+import { createContext } from "react";
+
+export const UserContext = createContext({});
+
+export const UserProvider = (props) => {
+  const { children } = props;
+  const contextName = "たかき";
+
+  return (
+    <UserContext.Provider value={{ contextName }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+```
+
+- `src/App.jsx`を編集  
+
+```jsx:App.jsx
+import "./App.css";
+import { UserProvider } from "./providers/UserProvider"; // 追加
+import { Router } from "./router/Router";
+
+export const App = () => {
+  return (
+    <UserProvider> {/* 追加 */}
+      <Router />;
+    </UserProvider> {/* 追加 */}
+  );
+};
+```
+
+- `src/components/molecules/user/UserIconWithName.jsx`を編集  
+
+```jsx:UserIconWithName.jsx
+import styled from "styled-components";
+import { useContext } from "react"; // 追加
+import { UserContext } from "../../../providers/UserProvider"; // 追加
+
+export const UserIconWithName = (props) => {
+  const { image, name, isAdmin } = props;
+  const context = useContext(UserContext); // 追加
+  console.log(context); // 追加 確認してみる
+
+  return (
+    <SContainer>
+      <SImg height={160} width={160} src={image} alt={name} />
+      <SName>{name}</SName>
+      {isAdmin && <SEdit>編集</SEdit>}
+    </SContainer>
+  );
+};
+
+const SContainer = styled.div`
+  text-align: center;
+`;
+const SImg = styled.img`
+  border-radius: 50%;
+`;
+const SName = styled.p`
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+  color: #40514e;
+`;
+const SEdit = styled.span`
+  text-decoration: underline;
+  color: #aaa;
+  cursor: pointer;
+`;
 ```
